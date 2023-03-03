@@ -2,11 +2,14 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 )
 
 const (
-	courseTypeAI = "AI"
+	courseTypeAI         = "AI"
+	courseTypeFoundation = "foundation"
+	courseTypeMindSpore  = "mindspore"
 
 	studentIdentityStudent   = "student"
 	studentIdentityTeacher   = "teacher"
@@ -134,8 +137,13 @@ type CourseType interface {
 }
 
 func NewCourseType(v string) (CourseType, error) {
-	if v == "" || v == courseTypeAI {
+	b := v == courseTypeAI ||
+		v == courseTypeFoundation ||
+		v == courseTypeMindSpore
+
+	if b {
 		return courseType(v), nil
+
 	}
 
 	return nil, errors.New("invalid course type")
@@ -251,6 +259,7 @@ type CourseStatus interface {
 }
 
 func NewCourseStatus(v string) (CourseStatus, error) {
+	fmt.Printf("v: %v\n", v)
 	b := v == courseStatusOver ||
 		v == courseStatusPreparing ||
 		v == courseStatusInProgress
