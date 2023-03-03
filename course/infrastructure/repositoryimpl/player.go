@@ -47,3 +47,31 @@ func (impl *playerRepoImpl) genPlayerDoc(p *domain.Player) (bson.M, error) {
 
 	return genDoc(obj)
 }
+
+// Player Count
+func (impl *playerRepoImpl) PlayerCount(cid string) (int, error) {
+	var v []struct {
+		Total int `bson:"total"`
+	}
+
+	f := func(ctx context.Context) error {
+
+		pipeline := bson.A{
+			bson.M{"$match": bson.M{"$eq": cid}},
+			bson.M{"$count": "total"},
+		}
+
+		cursor, err := impl.cli.Collection().Aggregate(ctx, pipeline)
+		if err != nil {
+			return err
+		}
+
+		return cursor.All(ctx, &v)
+	}
+
+	if err := withContext(f); err != nil || len(v) == 0 {
+		return 0, err
+	}
+
+	return v[0].Total, nil
+}

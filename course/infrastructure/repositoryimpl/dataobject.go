@@ -36,6 +36,8 @@ func (doc *DCourse) toCourse(c *domain.Course) (err error) {
 }
 
 func (doc *DCourse) toCourseSummary(c *domain.CourseSummary) (err error) {
+	c.Id = doc.Id
+
 	if c.Name, err = domain.NewCourseName(doc.Name); err != nil {
 		return
 	}
@@ -48,11 +50,7 @@ func (doc *DCourse) toCourseSummary(c *domain.CourseSummary) (err error) {
 		return
 	}
 
-	if c.Teacher, err = domain.NewURL(doc.Teacher); err != nil {
-		return
-	}
-
-	if c.PassScore, err = domain.NewCoursePassScore(doc.PassScore); err != nil {
+	if c.Hours, err = domain.NewCourseHours(doc.Hours); err != nil {
 		return
 	}
 
@@ -65,10 +63,6 @@ func (doc *DCourse) toCourseSummary(c *domain.CourseSummary) (err error) {
 	}
 
 	if c.Poster, err = domain.NewURL(doc.Poster); err != nil {
-		return
-	}
-
-	if c.Cert, err = domain.NewURL(doc.Cert); err != nil {
 		return
 	}
 
