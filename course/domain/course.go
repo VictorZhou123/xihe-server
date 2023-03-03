@@ -2,28 +2,27 @@ package domain
 
 // Course
 type CourseSummary struct {
-	Name    CourseName
-	Desc    CourseDesc
-	Host    CourseHost
-	Teacher URL
+	Id    string
+	Name  CourseName
+	Desc  CourseDesc
+	Host  CourseHost
+	Hours CourseHours
 
-	PassScore CoursePassScore
-	Status    CourseStatus
-	Duration  CourseDuration
-	Poster    URL
-	Cert      URL
+	Type     CourseType
+	Status   CourseStatus
+	Duration CourseDuration
+	Poster   URL
 }
 
 type Course struct {
 	CourseSummary
 
-	Id    string
-	Doc   URL
-	Forum URL
-
-	Type CourseType
-
-	Sections []Section
+	Teacher   URL
+	Doc       URL
+	Forum     URL
+	PassScore CoursePassScore
+	Cert      URL
+	Sections  []Section
 }
 
 // Assignment

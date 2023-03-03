@@ -204,6 +204,25 @@ func (r courseHost) CourseHost() string {
 	return string(r)
 }
 
+// CourseHours
+type CourseHours interface {
+	CourseHours() int
+}
+
+func NewCourseHours(v int) (CourseHours, error) {
+	if v == 0 {
+		return nil, errors.New("empty value")
+	}
+
+	return courseHours(v), nil
+}
+
+type courseHours int
+
+func (r courseHours) CourseHours() int {
+	return int(r)
+}
+
 // CoursePassScore
 type CoursePassScore interface {
 	CoursePassScore() int
