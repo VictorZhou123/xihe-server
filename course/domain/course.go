@@ -1,5 +1,7 @@
 package domain
 
+import "errors"
+
 // Course
 type CourseSummary struct {
 	Id    string
@@ -55,4 +57,16 @@ func (c *Course) IsOver() bool {
 
 func (c *Course) IsPreliminary() bool {
 	return c.Status != nil && c.Status.IsPreliminary()
+}
+
+func (c *Course) IsApplyed(p *Player) bool {
+	return p.CourseId == c.Id
+}
+
+func (c *Course) GetVideo(l *Lesson, p *Player) (URL, error) {
+	if !c.IsApplyed(p) {
+		return nil, errors.New("user not apply the course")
+	}
+
+	return l.Video, nil
 }
