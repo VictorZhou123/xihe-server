@@ -3,6 +3,8 @@ package repositoryimpl
 const (
 	fieldId      = "id"
 	fieldAccount = "account"
+	fieldStatus  = "status"
+	fieldType    = "type"
 )
 
 // Course

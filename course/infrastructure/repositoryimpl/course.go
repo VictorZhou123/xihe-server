@@ -59,10 +59,10 @@ func (impl *courseRepoImpl) FindCourses(opt *repository.CourseListOption) (
 	f := func(ctx context.Context) error {
 		filter := bson.M{}
 		if opt.Status != nil {
-			filter["status"] = opt.Status.CourseStatus()
+			filter[fieldStatus] = opt.Status.CourseStatus()
 		}
 		if opt.Type != nil {
-			filter["type"] = opt.Type.CourseType()
+			filter[fieldType] = opt.Type.CourseType()
 		}
 
 		return impl.cli.GetDocs(ctx, filter, nil, &v)
