@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 )
 
@@ -268,7 +267,6 @@ type CourseStatus interface {
 }
 
 func NewCourseStatus(v string) (CourseStatus, error) {
-	fmt.Printf("v: %v\n", v)
 	b := v == courseStatusOver ||
 		v == courseStatusPreparing ||
 		v == courseStatusInProgress

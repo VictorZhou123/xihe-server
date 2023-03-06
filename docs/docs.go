@@ -1444,7 +1444,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "just list competitions of competitor, if it is set",
+                        "description": "just list courses of player, if it is set",
                         "name": "mine",
                         "in": "query"
                     }
