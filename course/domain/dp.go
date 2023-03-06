@@ -7,9 +7,14 @@ import (
 )
 
 const (
-	courseTypeAI         = "AI"
+	courseTypeStart      = "start"
 	courseTypeFoundation = "foundation"
-	courseTypeMindSpore  = "mindspore"
+	courseTypeFramework  = "framework"
+	courseTypeCV         = "cv"
+	courseTypeNLP        = "nlp"
+	courseTypeAI4Science = "ai4science"
+	courseTypeScholar    = "scholar"
+	courseTypeIndustry   = "industry"
 
 	studentIdentityStudent   = "student"
 	studentIdentityTeacher   = "teacher"
@@ -137,9 +142,13 @@ type CourseType interface {
 }
 
 func NewCourseType(v string) (CourseType, error) {
-	b := v == courseTypeAI ||
+	b := v == courseTypeStart ||
 		v == courseTypeFoundation ||
-		v == courseTypeMindSpore
+		v == courseTypeMindSpore ||
+		v == courseTypeCV ||
+		v == courseTypeNLP ||
+		v == courseTypeIndustry ||
+		v == courseTypeScholar
 
 	if b {
 		return courseType(v), nil

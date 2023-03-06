@@ -1419,6 +1419,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/course": {
+            "get": {
+                "description": "list the course",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Course"
+                ],
+                "summary": "List",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "course status, such as over, preparing, in-progress",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "course type, such as ai, mindspore, foundation",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "just list competitions of competitor, if it is set",
+                        "name": "mine",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "system_error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/course/{id}/player": {
             "post": {
                 "description": "apply the course",
@@ -1449,7 +1492,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     },
                     "500": {
                         "description": "Internal Server Error",

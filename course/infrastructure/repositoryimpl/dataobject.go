@@ -54,6 +54,10 @@ func (doc *DCourse) toCourseSummary(c *domain.CourseSummary) (err error) {
 		return
 	}
 
+	if c.Type, err = domain.NewCourseType(doc.Type); err != nil {
+		return
+	}
+
 	if c.Status, err = domain.NewCourseStatus(doc.Status); err != nil {
 		return
 	}
