@@ -144,7 +144,7 @@ type CourseType interface {
 func NewCourseType(v string) (CourseType, error) {
 	b := v == courseTypeStart ||
 		v == courseTypeFoundation ||
-		v == courseTypeMindSpore ||
+		v == courseTypeFramework ||
 		v == courseTypeCV ||
 		v == courseTypeNLP ||
 		v == courseTypeIndustry ||
