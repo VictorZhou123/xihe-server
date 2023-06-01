@@ -153,20 +153,11 @@ func (ctl *LoginController) newLogin(ctx *gin.Context, info authing.Login) (err 
 		return
 	}
 
-	accessToken, err := ctl.encryptData(info.AccessToken)
-	if err != nil {
-		ctl.sendRespWithInternalError(ctx, newResponseCodeError(
-			errorSystemError, err,
-		))
-
-		return
-	}
-
 	err = ctl.ls.Create(&app.LoginCreateCmd{
-		Account:     info.Name,
-		Info:        idToken,
-		AccessToken: accessToken,
-		UserId:      info.UserId,
+		Account: info.Name,
+		Info:    idToken,
+		Email:   info.Email,
+		UserId:  info.UserId,
 	})
 	if err != nil {
 		ctl.sendRespWithInternalError(ctx, newResponseError(err))
