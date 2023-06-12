@@ -126,11 +126,13 @@ func (s trainingService) create(
 		},
 		TrainingId: r,
 	}
-	if err = s.sender.CreateTraining(&index); err != nil {
+
+	var msg *message.MsgTraining
+	msg.TrainingCreate(user, index, config.Inputs)
+
+	if err = s.sender.CreateTraining(msg); err != nil {
 		s.log.Errorf("send message of creating training failed, err:%s", err.Error())
 	}
-
-	_ = s.sender.AddOperateLogForCreateTraining(index)
 
 	return r, nil
 }
