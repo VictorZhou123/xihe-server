@@ -10,7 +10,6 @@ require (
 	github.com/huaweicloud/huaweicloud-sdk-go-obs v3.21.12+incompatible
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.11
 	github.com/opensourceways/community-robot-lib v0.0.0-20230111083119-2d2c0df320bb
-	github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db
 	github.com/opensourceways/xihe-finetune v0.0.0-20230106042033-e2993e0d37f8
 	github.com/opensourceways/xihe-grpc-protocol v0.0.0-20230317111524-e67370a0eb26
 	github.com/opensourceways/xihe-inference-evaluate v0.0.0-20230320085555-183262889af1
@@ -21,10 +20,10 @@ require (
 	github.com/swaggo/gin-swagger v1.5.3
 	github.com/swaggo/swag v1.8.10
 	github.com/xanzy/go-gitlab v0.73.1
-	go.mongodb.org/mongo-driver v1.10.3
-	gorm.io/driver/postgres v1.5.0
+	go.mongodb.org/mongo-driver v1.10.0
+	gorm.io/driver/postgres v1.0.0
 	gorm.io/gorm v1.24.7-0.20230306060331-85eaf9eeda11
-	k8s.io/apimachinery v0.26.3
+	k8s.io/apimachinery v0.26.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -61,8 +60,14 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
+	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.6.4 // indirect
+	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.0.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgtype v1.4.2 // indirect
+	github.com/jackc/pgx/v4 v4.8.1 // indirect
 	github.com/jackc/pgx/v5 v5.3.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -100,6 +105,7 @@ require (
 	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
