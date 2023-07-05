@@ -1,4 +1,4 @@
-FROM golang:latest as BUILDER
+FROM golang:1.18.10-bullseye as BUILDER
 
 # build binary
 COPY . /go/src/github.com/opensourceways/xihe-server
