@@ -18,7 +18,7 @@ import (
 
 const (
 	sessionPrivateToken = "PRIVATE-TOKEN"
-	csrfToken          = "CSRF-Token"
+	csrfToken           = "CSRF-Token"
 	headerSecWebsocket  = "Sec-Websocket-Protocol"
 
 	roleIndividuals = "individuals"
@@ -210,8 +210,6 @@ func (ctl baseController) checkUserApiTokenBase(
 
 func (ctl baseController) setRespSessionToken(ctx *gin.Context, token string) {
 	session := sessions.Default(ctx)
-
-	session.Delete(sessionPrivateToken)
 
 	session.Set(sessionPrivateToken, token)
 
