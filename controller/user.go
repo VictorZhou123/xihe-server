@@ -74,9 +74,9 @@ type UserController struct {
 //	@Failure		500	duplicate_creating	create	user	repeatedly
 //	@Router			/v1/user [post]
 func (ctl *UserController) Create(ctx *gin.Context) {
-	token, _ := ctl.getToken(ctx)
+	token, _, err := ctl.getToken(ctx)
 
-	if token != apiConfig.DefaultPassword {
+	if err != nil || token != apiConfig.DefaultPassword {
 		ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(
 			errorNotAllowed, "not allow",
 		))
@@ -124,7 +124,7 @@ func (ctl *UserController) Create(ctx *gin.Context) {
 		return
 	}
 
-	ctl.setRespToken(ctx, token, csrftoken)
+	ctl.setRespToken(ctx, token, csrftoken, d.Account)
 	ctx.JSON(http.StatusCreated, newResponseData(d))
 }
 
@@ -397,7 +397,7 @@ func (ctl *UserController) BindEmail(ctx *gin.Context) {
 	} else {
 		token, csrftoken := f()
 		if token != "" {
-			ctl.setRespToken(ctx, token, csrftoken)
+			ctl.setRespToken(ctx, token, csrftoken, pl.Account)
 		}
 
 		ctl.sendRespOfPost(ctx, "success")
