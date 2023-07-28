@@ -7,6 +7,7 @@ import (
 
 	"github.com/opensourceways/community-robot-lib/mq"
 	"github.com/opensourceways/community-robot-lib/utils"
+	"github.com/opensourceways/xihe-server/async-server/infrastructure/timerimpl"
 	"github.com/opensourceways/xihe-server/async-server/infrastructure/watchimpl"
 
 	"github.com/opensourceways/xihe-server/async-server/infrastructure/poolimpl"
@@ -52,6 +53,7 @@ type Config struct {
 	MQ         MQ               `json:"mq"           required:"true"`
 	Pool       poolimpl.Config  `json:"pool"         required:"true"`
 	Watcher    watchimpl.Config `json:"watcher"      required:"true"`
+	Timer      timerimpl.Config `json:"timer"        required:"true"`
 }
 
 func (cfg *Config) GetMQConfig() mq.MQConfig {

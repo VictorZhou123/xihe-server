@@ -68,6 +68,16 @@ func IsExpiry(expiry int64) bool {
 	return time.Now().Unix() > expiry
 }
 
+func RemainTime(
+	hour int, min int, second int,
+) time.Duration {
+	now := time.Now()
+	next := now.Add(time.Hour * 24)
+	next = time.Date(next.Year(), next.Month(), next.Day(), hour, min, second, 0, next.Location())
+
+	return next.Sub(now)
+}
+
 func StrLen(s string) int {
 	return utf8.RuneCountInString(s)
 }
