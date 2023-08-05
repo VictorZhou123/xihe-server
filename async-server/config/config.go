@@ -13,6 +13,7 @@ import (
 	"github.com/opensourceways/xihe-server/async-server/infrastructure/repositoryimpl"
 	"github.com/opensourceways/xihe-server/bigmodel/infrastructure/bigmodels"
 	"github.com/opensourceways/xihe-server/common/infrastructure/pgsql"
+	"github.com/opensourceways/xihe-server/common/infrastructure/redis"
 	"github.com/opensourceways/xihe-server/infrastructure/messages"
 )
 
@@ -49,6 +50,7 @@ type Config struct {
 
 	BigModel   bigmodels.Config `json:"bigmodel"     required:"true"`
 	Postgresql PostgresqlConfig `json:"postgresql"   required:"true"`
+	Redis      Redis            `json:"redis"        required:"true"`
 	MQ         MQ               `json:"mq"           required:"true"`
 	Pool       poolimpl.Config  `json:"pool"         required:"true"`
 	Watcher    watchimpl.Config `json:"watcher"      required:"true"`
@@ -104,6 +106,10 @@ type PostgresqlConfig struct {
 	DB pgsql.Config `json:"db" required:"true"`
 
 	repositoryimpl.Config
+}
+
+type Redis struct {
+	DB redis.Config `json:"db" required:"true"`
 }
 
 type MQ struct {

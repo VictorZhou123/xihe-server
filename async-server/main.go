@@ -17,6 +17,7 @@ import (
 	bigmodelapp "github.com/opensourceways/xihe-server/bigmodel/app"
 	"github.com/opensourceways/xihe-server/bigmodel/infrastructure/bigmodels"
 	"github.com/opensourceways/xihe-server/common/infrastructure/pgsql"
+	"github.com/opensourceways/xihe-server/common/infrastructure/redis"
 	"github.com/opensourceways/xihe-server/infrastructure/messages"
 )
 
@@ -84,7 +85,12 @@ func main() {
 
 	// postgresql
 	if err := pgsql.Init(&cfg.Postgresql.DB); err != nil {
-		logrus.Fatalf("init db, err:%s", err.Error())
+		logrus.Fatalf("init postgresql, err:%s", err.Error())
+	}
+
+	// redis
+	if err := redis.Init(&cfg.Redis.DB); err != nil {
+		logrus.Fatalf("init redis, err:%s", err.Error())
 	}
 
 	// pool
@@ -110,6 +116,8 @@ func main() {
 		poolimpl.NewPoolImpl(),
 		asyncWuKongRepo,
 	)
+
+	// 
 
 	// watch
 	w := watchimpl.NewWather(

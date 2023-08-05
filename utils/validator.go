@@ -2,6 +2,8 @@ package utils
 
 import (
 	"html/template"
+	"net"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -34,6 +36,16 @@ func IsPictureName(pictureName string) bool {
 	}
 
 	return allowed
+}
+
+func IsValidIPAddress(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil
+}
+
+func IsValidURL(u string) bool {
+	_, err := url.Parse(u)
+	return err == nil
 }
 
 func isMatchRegex(pattern string, v string) bool {

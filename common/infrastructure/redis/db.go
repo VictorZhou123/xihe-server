@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -24,4 +25,14 @@ func Init(cfg *Config) error {
 
 	return nil
 
+}
+
+func WithContext(f func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer cancel()
+
+	return f(ctx)
 }
