@@ -468,7 +468,7 @@ func (ctl baseController) cleanCookie(ctx *gin.Context) {
 	}
 
 	ctl.newRepo().Expire(u, 0)
-	
+
 	setCookie(ctx, csrfToken, "", false, time.Now().AddDate(0, 0, -1))
 }
 
@@ -520,6 +520,14 @@ func (ctl baseController) sendRespOfPut(ctx *gin.Context, data interface{}) {
 
 func (ctl baseController) sendRespOfDelete(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, newResponseData("success"))
+}
+
+func (ctl baseController) sendRespWithHeaderOfGet(ctx *gin.Context, header map[string]string, data interface{}) {
+	for k, v := range header {
+		ctx.Writer.Header().Set(k, v)
+	}
+
+	ctx.JSON(http.StatusOK, newResponseData(data))
 }
 
 func (ctl baseController) getListResourceParameter(

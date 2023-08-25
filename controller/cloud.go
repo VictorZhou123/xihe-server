@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -20,6 +21,7 @@ func AddRouterForCloudController(
 	}
 
 	rg.GET("/v1/cloud", ctl.List)
+	rg.GET("/v1/cloud/auth", ctl.Auth)
 }
 
 type CloudController struct {
@@ -199,5 +201,38 @@ func (ctl *CloudController) GetHttp(ctx *gin.Context) {
 		ctl.sendBadRequestParam(ctx, err)
 	} else {
 		ctl.sendRespOfGet(ctx, dto)
+	}
+}
+
+func (ctl *CloudController) Auth(ctx *gin.Context) {
+	pl, _, ok := ctl.checkUserApiToken(ctx, false)
+	if !ok {
+		return
+	}
+
+	host := ctx.GetHeader("Host")
+	fmt.Printf("host: %v\n", host)
+
+	cmd := app.PodInfoCmd{
+		User:    pl.DomainAccount(),
+		CloudId: host,
+	}
+	if err := cmd.Validate(); err != nil {
+		ctl.sendBadRequestBody(ctx)
+
+		return
+	}
+
+	if dto, err := ctl.s.Get(&cmd); err != nil {
+		ctl.sendBadRequestParam(ctx, err)
+	} else {
+		m := make(map[string]string, 1)
+		if dto.AccessURL == "" {
+			m["x-auth-code"] = "DENIED"
+		} else {
+			m["x-auth-code"] = "ALLOWED"
+		}
+
+		ctl.sendRespWithHeaderOfGet(ctx, m, dto)
 	}
 }
