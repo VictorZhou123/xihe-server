@@ -273,6 +273,7 @@ func setCookie(ctx *gin.Context, key, val string, httpOnly bool, expireTime time
 		Path:     "/",
 		Expires:  expireTime,
 		HttpOnly: httpOnly,
+		Domain:   ".test.osinfra.cn",
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}
