@@ -390,3 +390,38 @@ func (req *applyApiReq) toCmd(user types.Account) (cmd userapp.UserRegisterInfoC
 type isApplyResp struct {
 	IsApply bool `json:"is_apply"`
 }
+
+// glm
+type glmReq struct {
+	Text              string  `json:"text"`
+	TopK              int     `json:"topk"`
+	TopP              float64 `json:"topp"`
+	Temperature       float64 `json:"temperature"`
+	RepetitionPenalty float64 `json:"repetition_penalty"`
+}
+
+func (req *glmReq) toCmd() (cmd app.GLMCmd, err error) {
+	if cmd.Text, err = domain.NewGLMText(req.Text); err != nil {
+		return
+	}
+
+	if cmd.TopK, err = domain.NewTopK(req.TopK); err != nil {
+		return
+	}
+
+	if cmd.TopP, err = domain.NewTopP(req.TopP); err != nil {
+		return
+	}
+
+	if cmd.Temperature, err = domain.NewTemperature(req.Temperature); err != nil {
+		return
+	}
+
+	if cmd.RepetitionPenalty, err = domain.NewRepetitionPenalty(req.RepetitionPenalty); err != nil {
+		return
+	}
+
+	cmd.SetDefault()
+
+	return
+}

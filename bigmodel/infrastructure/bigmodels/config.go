@@ -10,6 +10,7 @@ type Config struct {
 	OBS        OBSConfig   `json:"obs"             required:"true"`
 	Cloud      CloudConfig `json:"cloud"           required:"true"`
 	WuKong     WuKong      `json:"wukong"          required:"true"`
+	GLM        GLM         `json:"glm"             required:"true"`
 	Endpoints  Endpoints   `json:"endpoints"       required:"true"`
 	Moderation Moderation  `json:"moderation"      required:"true"`
 
@@ -74,6 +75,7 @@ type Endpoints struct {
 	SinglePicture    string `json:"signle_picture"     required:"true"`
 	MultiplePictures string `json:"multiple_pictures"  required:"true"`
 	AIDetector       string `json:"ai_detector"        required:"true"`
+	GLM              string `json:"glm"                required:"true"`
 }
 
 func (e *Endpoints) validate() (err error) {
@@ -186,4 +188,7 @@ func (cfg *WuKong) validate() error {
 
 type ApiService struct {
 	TokenExpire string
+}
+
+type GLM struct {
 }

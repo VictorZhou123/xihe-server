@@ -71,3 +71,13 @@ func (r AIDetectorInput) IsTextLengthOK() bool {
 type GenPictureInput struct {
 	Desc Desc
 }
+
+// GLM
+type GLMInput struct {
+	Text              GLMText
+	TopK              TopK
+	TopP              TopP
+	Temperature       Temperature
+	RepetitionPenalty RepetitionPenalty
+}
+

@@ -272,3 +272,102 @@ type modelName string
 func (m modelName) ModelName() string {
 	return string(m)
 }
+
+// glm text
+type GLMText interface {
+	GLMText() string
+}
+
+type gLMText string
+
+func NewGLMText(v string) (GLMText, error) {
+	if v == "" {
+		return nil, errors.New("no glm text")
+	}
+
+	if max:= 1000; utils.StrLen(v) > max { // TODO: to config
+		return nil, errors.New("invalid glm text")
+	}
+
+	return gLMText(v), nil
+}
+
+func (g gLMText) GLMText() string {
+	return string(g)
+}
+
+// top k
+type TopK interface {
+	TopK() int
+}
+
+type topk int
+
+func NewTopK(v int) (TopK, error) {
+	if min,max:=0,10; v < min || v > max {
+		return nil, errors.New("invalid topk")
+	}
+
+	return topk(v), nil
+}
+
+func (t topk) TopK() int {
+	return int(t)
+}
+
+// top p
+type TopP interface {
+	TopP() float64
+}
+
+type topp float64
+
+func NewTopP(v float64) (TopP, error) {
+	if min, max := 0.00, 1.00; v < min || v > max {
+		return nil, errors.New("invalid topp")
+	}
+
+	return topp(v), nil
+}
+
+func (t topp) TopP() float64 {
+	return float64(t)
+}
+
+// temperature
+type Temperature interface {
+	Temperature() float64
+}
+
+type temperature float64
+
+func NewTemperature(v float64) (Temperature, error) {
+	if min:= 0.00; v < min {
+		return nil, errors.New("invalid temperature")
+	}
+
+	return temperature(v), nil
+}
+
+func (t temperature) Temperature() float64 {
+	return float64(t)
+}
+
+// repetition penalty
+type RepetitionPenalty interface {
+	RepetitionPenalty() float64
+}
+
+type repetitionPenalty float64
+
+func NewRepetitionPenalty(v float64) (RepetitionPenalty, error) {
+	if min:= 0.00; v < min {
+		return nil, errors.New("invalid repetitionPenalty")
+	}
+
+	return repetitionPenalty(v), nil
+}
+
+func (t repetitionPenalty) RepetitionPenalty() float64 {
+	return float64(t)
+} 

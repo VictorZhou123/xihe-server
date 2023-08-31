@@ -326,3 +326,28 @@ func (s bigModelService) toApiInfoDTO(
 		Doc:      v.Doc.URL(),
 	}
 }
+
+// glm
+type GLMCmd domain.GLMInput
+
+func (cmd *GLMCmd) SetDefault() {
+	if cmd.TopK.TopK() == 0 {
+		cmd.TopK, _ = domain.NewTopK(1)
+	}
+
+	if cmd.TopP.TopP() == 0.0 {
+		cmd.TopP, _ = domain.NewTopP(1)
+	}
+
+	if cmd.Temperature.Temperature() == 0.0 {
+		cmd.Temperature, _ = domain.NewTemperature(1)
+	}
+
+	if cmd.RepetitionPenalty.RepetitionPenalty() == 0.0 {
+		cmd.RepetitionPenalty, _ = domain.NewRepetitionPenalty(1)
+	}
+}
+
+type GLMDTO struct {
+	Text string `json:"text"`
+}

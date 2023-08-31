@@ -76,6 +76,9 @@ type BigModelService interface {
 
 	// ai detector
 	AIDetector(*AIDetectorCmd) (string, bool, error)
+
+	// glm
+	GLM(*GLMCmd) (GLMDTO, error)
 }
 
 func NewBigModelService(

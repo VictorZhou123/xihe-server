@@ -56,4 +56,7 @@ type BigModel interface {
 
 	// ai detector
 	AIDetector(domain.AIDetectorInput) (bool, error)
+
+	// glm2
+	GLM(domain.GLMInput) (string, error)
 }
