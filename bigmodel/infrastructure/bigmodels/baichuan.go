@@ -7,6 +7,7 @@ import (
 
 	libutils "github.com/opensourceways/community-robot-lib/utils"
 	"github.com/opensourceways/xihe-server/bigmodel/domain"
+	"github.com/sirupsen/logrus"
 )
 
 type baichuanInfo struct {
@@ -72,6 +73,7 @@ func (s *service) BaiChuan(input *domain.BaiChuanInput) (code, r string, err err
 	if resp.Code != 200 {
 		code = CodeBaiChuanGenerationError
 		err = errors.New("bigmodel baichuan inference generation error")
+		logrus.Errorf("baichuan inference error:%v", resp)
 
 		return
 	}
