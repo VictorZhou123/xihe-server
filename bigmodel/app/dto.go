@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 
 	"github.com/opensourceways/xihe-server/bigmodel/domain"
 	bigmodeldomain "github.com/opensourceways/xihe-server/bigmodel/domain"
@@ -330,7 +331,7 @@ func (s bigModelService) toApiInfoDTO(
 // baichuan
 type BaiChuanCmd struct {
 	User              types.Account
-	Sampling		  bool
+	Sampling          bool
 	Text              domain.BaiChuanText
 	TopK              domain.TopK
 	TopP              domain.TopP
@@ -347,4 +348,12 @@ func (cmd *BaiChuanCmd) SetDefault() {
 
 type BaiChuanDTO struct {
 	Text string `json:"text"`
+}
+
+func (dto *BaiChuanDTO) DeleteBaiChuanOutputMark() {
+	re := regexp.MustCompile(fmt.Sprintf(
+		"%s.*?%s", domain.BaiChuanInputFrontMark, domain.BaiChuanInputTailMark,
+	))
+
+	dto.Text = re.ReplaceAllString(dto.Text, "")
 }

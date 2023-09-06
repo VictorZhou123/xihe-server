@@ -19,5 +19,7 @@ func (s bigModelService) BaiChuan(cmd *BaiChuanCmd) (code string, dto BaiChuanDT
 		return
 	}
 
+	dto.DeleteBaiChuanOutputMark()
+
 	return
 }

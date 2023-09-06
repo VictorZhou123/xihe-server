@@ -21,12 +21,15 @@ const (
 	bigmodelDescPicture   = "desc_picture"
 	bigmodelDescPictureHF = "desc_picture_hf"
 	bigmodelAIDetector    = "ai_detector"
-	bigmodelBaiChuan           = "baichuan"
+	bigmodelBaiChuan      = "baichuan"
 
 	langZH = "zh"
 	langEN = "en"
 
 	modelNameWukong = "wukong"
+
+	BaiChuanInputFrontMark = "<reserved_106>"
+	BaiChuanInputTailMark  = "<reserved_107>"
 )
 
 var (
@@ -42,7 +45,7 @@ var (
 	BigmodelDescPicture   = BigmodelType(bigmodelDescPicture)
 	BigmodelDescPictureHF = BigmodelType(bigmodelDescPictureHF)
 	BigmodelAIDetector    = BigmodelType(bigmodelAIDetector)
-	BigmodelBaiChuan           = BigmodelType(bigmodelBaiChuan)
+	BigmodelBaiChuan      = BigmodelType(bigmodelBaiChuan)
 
 	wukongPictureLevelMap = map[string]int{
 		"official": 2,
@@ -278,6 +281,7 @@ func (m modelName) ModelName() string {
 // baichuan text
 type BaiChuanText interface {
 	BaiChuanText() string
+	BaiChuanTextInputMark() string
 }
 
 type baiChuanText string
@@ -287,7 +291,7 @@ func NewBaiChuanText(v string) (BaiChuanText, error) {
 		return nil, errors.New("no baichuan text")
 	}
 
-	if max:= 1000; utils.StrLen(v) > max { // TODO: to config
+	if max := 1000; utils.StrLen(v) > max { // TODO: to config
 		return nil, errors.New("invalid baichuan text")
 	}
 
@@ -298,6 +302,12 @@ func (g baiChuanText) BaiChuanText() string {
 	return string(g)
 }
 
+func (g baiChuanText) BaiChuanTextInputMark() string {
+	return fmt.Sprintf(
+		"%s%s%s", BaiChuanInputFrontMark, g.BaiChuanText(), BaiChuanInputTailMark,
+	)
+}
+
 // top k
 type TopK interface {
 	TopK() int
@@ -306,7 +316,7 @@ type TopK interface {
 type top_k int
 
 func NewTopK(v int) (TopK, error) {
-	if min,max:=0,10; v < min || v > max {
+	if min, max := 0, 10; v < min || v > max {
 		return nil, errors.New("invalid top_k")
 	}
 
@@ -344,7 +354,7 @@ type Temperature interface {
 type temperature float64
 
 func NewTemperature(v float64) (Temperature, error) {
-	if min:= 0.00; v < min {
+	if min := 0.00; v < min {
 		return nil, errors.New("invalid temperature")
 	}
 
@@ -363,7 +373,7 @@ type RepetitionPenalty interface {
 type repetitionPenalty float64
 
 func NewRepetitionPenalty(v float64) (RepetitionPenalty, error) {
-	if min:= 0.00; v < min {
+	if min := 0.00; v < min {
 		return nil, errors.New("invalid repetitionPenalty")
 	}
 
@@ -372,4 +382,4 @@ func NewRepetitionPenalty(v float64) (RepetitionPenalty, error) {
 
 func (t repetitionPenalty) RepetitionPenalty() float64 {
 	return float64(t)
-} 
+}

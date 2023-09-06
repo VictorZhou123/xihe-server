@@ -118,7 +118,7 @@ func (s *service) genBaiChuan(
 
 func toBaiChuanReq(d *domain.BaiChuanInput) baichuanRequest {
 	return baichuanRequest{
-		Inputs:            d.Text.BaiChuanText(),
+		Inputs:            d.Text.BaiChuanTextInputMark(),
 		Sampling:          d.Sampling,
 		TopK:              d.TopK.TopK(),
 		TopP:              d.TopP.TopP(),
