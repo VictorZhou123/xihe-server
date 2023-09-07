@@ -216,6 +216,8 @@ type ComputeFlavor interface {
 }
 
 func NewComputeFlavorVersion(flaver string, t string, version string) (ComputeFlavor, ComputeVersion, error) {
+	fmt.Printf("version: %v\n", version)
+	
 	if flaver == "" || t == "" {
 		return nil, nil, errors.New("empty compute flavor or version")
 	}
