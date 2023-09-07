@@ -13,8 +13,10 @@ const (
 	MsgTypeWuKongInferenceError  = "msg_type_wukong_inference_error"
 	MsgTypeWuKongAsyncTaskStart  = "msg_type_wukong_async_task_start"
 	MsgTypeWuKongAsyncTaskFinish = "msg_type_wukong_async_task_finish"
+	MsgTypeWuKongPublicPicture   = "msg_type_wukong_public_picture"
 )
 
+// normal msessage
 type MsgTask comsg.MsgNormal
 
 type AsyncMessageProducer interface {
@@ -73,5 +75,13 @@ func (msg *MsgTask) WuKongAsyncInferenceFinish(tid uint64, user string, links ma
 			"status":  "finished",
 			"links":   strings.TrimRight(ls, ","),
 		},
+	}
+}
+
+func (msg *MsgTask) WuKongPublicPicture(user string) {
+	*msg = MsgTask{
+		Type:    MsgTypeWuKongPublicPicture,
+		User:    user,
+		Details: nil,
 	}
 }

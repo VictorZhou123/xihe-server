@@ -470,6 +470,11 @@ func (s bigModelService) AddPublicFromTempPicture(cmd *WuKongAddPublicFromTempCm
 	}
 	pid, err = s.wukongPicture.SavePublic(p, version)
 
+	// send msg
+	msg := new(message.MsgTask)
+	msg.WuKongPublicPicture(cmd.User.Account())
+	_ = s.sender.SendBigModelMsg(msg)
+
 	return
 }
 
