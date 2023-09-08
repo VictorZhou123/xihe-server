@@ -15,6 +15,7 @@ func (s sender) SendBigmodelPublicMsg(v *bigmodelmsg.MsgTask) error {
 
 // comsumer
 type BigModelMessageHandler interface {
+	// wukong
 	HandleEventBigModelWuKongInferenceStart(*bigmodelmsg.MsgTask) error
 	HandleEventBigModelWuKongInferenceError(*bigmodelmsg.MsgTask) error
 	HandleEventBigModelWuKongAsyncTaskStart(*bigmodelmsg.MsgTask) error

@@ -19,6 +19,7 @@ import (
 	"github.com/opensourceways/xihe-server/domain"
 	"github.com/opensourceways/xihe-server/domain/message"
 	"github.com/opensourceways/xihe-server/domain/repository"
+	pointapp "github.com/opensourceways/xihe-server/points/app"
 	userapp "github.com/opensourceways/xihe-server/user/app"
 	userdomain "github.com/opensourceways/xihe-server/user/domain"
 )
@@ -54,6 +55,7 @@ type handler struct {
 	inference app.InferenceMessageService
 	cloud     cloudapp.CloudMessageService
 	async     asyncapp.AsyncMessageService
+	point     pointapp.UserPointsAppMessageService
 }
 
 func (h *handler) HandleEventAddRelatedResource(info *message.RelatedResource) error {
