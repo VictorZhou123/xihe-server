@@ -119,11 +119,11 @@ func main() {
 	cfg.initDomainConfig()
 
 	// points
-	if err = pointsSubscribesMessage(&cfg.MQ.Topics); err != nil {
-		logrus.Errorf("points subscribes message failed, err:%s", err.Error())
+	// if err = pointsSubscribesMessage(&cfg.MQ.Topics); err != nil {
+	// 	logrus.Errorf("points subscribes message failed, err:%s", err.Error())
 
-		return
-	}
+	// 	return
+	// }
 
 	// run
 	run(newHandler(cfg, log), log)

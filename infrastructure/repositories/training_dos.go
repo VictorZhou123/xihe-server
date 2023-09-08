@@ -1,6 +1,8 @@
 package repositories
 
-import "github.com/opensourceways/xihe-server/domain"
+import (
+	"github.com/opensourceways/xihe-server/domain"
+)
 
 type UserTrainingDO struct {
 	Id        string
