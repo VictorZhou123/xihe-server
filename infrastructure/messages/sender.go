@@ -231,7 +231,7 @@ func (s sender) sendOperateLog(u domain.Account, t string, info map[string]strin
 		a = u.Account()
 	}
 
-	return s.send(topics.OperateLog, &msgOperateLog{
+	return s.send(topics.OperateLog, &MsgOperateLog{
 		When: utils.Now(),
 		User: a,
 		Type: t,
