@@ -63,7 +63,7 @@ type competitionConfig struct {
 	Message competitionmsg.Config `json:"message"`
 }
 
-type bigmodelConfig struct {
+type BigmodelConfig struct {
 	bigmodels.Config
 
 	Message bigmodelmsg.Config
@@ -77,7 +77,7 @@ type Config struct {
 	Challenge   challengeimpl.Config `json:"challenge"    required:"true"`
 	Training    trainingimpl.Config  `json:"training"     required:"true"`
 	Finetune    finetuneimpl.Config  `json:"finetune"     required:"true"`
-	BigModel    bigmodelConfig       `json:"bigmodel"     required:"true"`
+	BigModel    BigmodelConfig       `json:"bigmodel"     required:"true"`
 	Authing     authingimpl.Config   `json:"authing"      required:"true"`
 	Mongodb     Mongodb              `json:"mongodb"      required:"true"`
 	Postgresql  PostgresqlConfig     `json:"postgresql"   required:"true"`
