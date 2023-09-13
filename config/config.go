@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/xihe-server/app"
 	asyncrepoimpl "github.com/opensourceways/xihe-server/async-server/infrastructure/repositoryimpl"
 	"github.com/opensourceways/xihe-server/bigmodel/infrastructure/bigmodels"
+	bigmodelmsg "github.com/opensourceways/xihe-server/bigmodel/infrastructure/messageadapter"
 	cloudrepoimpl "github.com/opensourceways/xihe-server/cloud/infrastructure/repositoryimpl"
 	"github.com/opensourceways/xihe-server/common/infrastructure/kafka"
 	"github.com/opensourceways/xihe-server/common/infrastructure/pgsql"
@@ -62,6 +63,12 @@ type competitionConfig struct {
 	Message competitionmsg.Config `json:"message"`
 }
 
+type bigmodelConfig struct {
+	bigmodels.Config
+
+	Message bigmodelmsg.Config
+}
+
 type Config struct {
 	MaxRetry        int `json:"max_retry"`
 	ActivityKeepNum int `json:"activity_keep_num"`
@@ -70,7 +77,7 @@ type Config struct {
 	Challenge   challengeimpl.Config `json:"challenge"    required:"true"`
 	Training    trainingimpl.Config  `json:"training"     required:"true"`
 	Finetune    finetuneimpl.Config  `json:"finetune"     required:"true"`
-	BigModel    bigmodels.Config     `json:"bigmodel"     required:"true"`
+	BigModel    bigmodelConfig       `json:"bigmodel"     required:"true"`
 	Authing     authingimpl.Config   `json:"authing"      required:"true"`
 	Mongodb     Mongodb              `json:"mongodb"      required:"true"`
 	Postgresql  PostgresqlConfig     `json:"postgresql"   required:"true"`
