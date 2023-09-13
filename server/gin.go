@@ -16,6 +16,7 @@ import (
 	asyncrepoimpl "github.com/opensourceways/xihe-server/async-server/infrastructure/repositoryimpl"
 	bigmodelapp "github.com/opensourceways/xihe-server/bigmodel/app"
 	bigmodelasynccli "github.com/opensourceways/xihe-server/bigmodel/infrastructure/asynccli"
+	bigmodelmsg "github.com/opensourceways/xihe-server/bigmodel/infrastructure/messageadapter"
 	"github.com/opensourceways/xihe-server/bigmodel/infrastructure/bigmodels"
 	bigmodelrepo "github.com/opensourceways/xihe-server/bigmodel/infrastructure/repositoryimpl"
 	cloudapp "github.com/opensourceways/xihe-server/cloud/app"
@@ -193,7 +194,7 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 		bigmodelrepo.NewWuKongRepo(mongodb.NewCollection(collections.WuKong)),
 		bigmodelrepo.NewWuKongPictureRepo(mongodb.NewCollection(collections.WuKongPicture)),
 		bigmodelasynccli.NewAsyncCli(asyncAppService),
-		sender,
+		bigmodelmsg.NewPublisher(&cfg.BigModel.Message),
 		bigmodelrepo.NewApiService(mongodb.NewCollection(collections.ApiApply)),
 		bigmodelrepo.NewApiInfo(mongodb.NewCollection(collections.ApiInfo)),
 		userRegService,
