@@ -8,7 +8,6 @@ import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/sirupsen/logrus"
 
-	bigmoddelmsg "github.com/opensourceways/xihe-server/bigmodel/domain/message"
 	cloudtypes "github.com/opensourceways/xihe-server/cloud/domain"
 	cloudmsg "github.com/opensourceways/xihe-server/cloud/domain/message"
 	"github.com/opensourceways/xihe-server/domain"
@@ -25,7 +24,6 @@ const (
 	handlerNameAddFollowing       = "add_following"
 	handlerNameAddRelatedResource = "add_related_resource"
 	handlerNameCreateCloud        = "create_cloud"
-	handlerNameCreateBigModel     = "create_bigmodel"
 	handlerNameCreateTraining     = "create_training"
 	handlerNameCreateFinetune     = "create_finetune"
 	handlerNameCreateEvaluate     = "create_evaluate"
@@ -81,11 +79,6 @@ func Subscribe(ctx context.Context, handler interface{}, log *logrus.Entry) (err
 	// cloud
 	if err = registerHandlerForCloud(handler); err != nil {
 		return
-	}
-
-	// bigmodel
-	if err = registerHandlerForBigModel(handler); err != nil {
-		return err
 	}
 
 	// register end
@@ -399,44 +392,6 @@ func registerHandlerForCloud(handler interface{}) error {
 	}
 
 	return subscribe(topics.Cloud, handlerNameCreateCloud, f)
-}
-
-func registerHandlerForBigModel(handler interface{}) error {
-
-	f := func(b []byte, m map[string]string) (err error) {
-		body := bigmoddelmsg.MsgTask{}
-		if err = json.Unmarshal(b, &body); err != nil {
-			return
-		}
-
-		h, ok := handler.(BigModelMessageHandler)
-		if !ok {
-			return
-		}
-
-		switch body.Type {
-		case bigmoddelmsg.MsgTypeWuKongAsyncTaskFinish:
-
-			return h.HandleEventBigModelWuKongAsyncTaskFinish(&body)
-
-		case bigmoddelmsg.MsgTypeWuKongAsyncTaskStart:
-
-			return h.HandleEventBigModelWuKongAsyncTaskStart(&body)
-
-		case bigmoddelmsg.MsgTypeWuKongInferenceStart:
-
-			return h.HandleEventBigModelWuKongInferenceStart(&body)
-
-		case bigmoddelmsg.MsgTypeWuKongInferenceError:
-
-			return h.HandleEventBigModelWuKongInferenceError(&body)
-
-		}
-
-		return
-	}
-
-	return subscribe(topics.BigModel, handlerNameCreateBigModel, f)
 }
 
 func subscribe(topicName string, handlerName string, handler kfklib.Handler) error {
