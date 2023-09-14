@@ -7,6 +7,7 @@ import (
 	msgadapeter "github.com/opensourceways/xihe-server/bigmodel/infrastructure/messageadapter"
 	"github.com/opensourceways/xihe-server/cloud/infrastructure/cloudimpl"
 	cloudrepoimpl "github.com/opensourceways/xihe-server/cloud/infrastructure/repositoryimpl"
+	common "github.com/opensourceways/xihe-server/common/domain/message"
 	"github.com/opensourceways/xihe-server/common/infrastructure/kafka"
 	"github.com/opensourceways/xihe-server/common/infrastructure/pgsql"
 	"github.com/opensourceways/xihe-server/config"
@@ -181,11 +182,11 @@ type mqTopics struct {
 }
 
 func toBigModelMessageConfig(topics *mqTopics) (cfg msgadapeter.Config) {
-	cfg.InferenceStart.Topic = topics.InferenceStart
-	cfg.InferenceError.Topic = topics.InferenceError
-	cfg.InferenceAsyncStart.Topic = topics.InferenceAsyncStart
-	cfg.InferenceAsyncFinish.Topic = topics.InferenceAsyncFinish
-	cfg.PicturePublic.Topic = topics.PicturePublic
-
-	return
+	return msgadapeter.Config{
+		InferenceStart:       common.TopicConfig{Topic: topics.InferenceStart},
+		InferenceError:       common.TopicConfig{Topic: topics.InferenceError},
+		InferenceAsyncStart:  common.TopicConfig{Topic: topics.InferenceAsyncStart},
+		InferenceAsyncFinish: common.TopicConfig{Topic: topics.InferenceAsyncFinish},
+		PicturePublic:        common.TopicConfig{Topic: topics.PicturePublic},
+	}
 }
