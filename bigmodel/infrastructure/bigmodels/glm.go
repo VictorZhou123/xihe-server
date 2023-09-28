@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -92,7 +93,7 @@ func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Accept", "*/*")
 
-	resp, err := s.hc.Client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -111,6 +112,8 @@ func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM
 
 				return
 			}
+
+			fmt.Printf("line: %v\n", line)
 
 			data := strings.Replace(string(line), "data: ", "", 1)
 			data = strings.TrimRight(data, "\x00")
