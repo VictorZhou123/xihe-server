@@ -1,7 +1,6 @@
 package bigmodels
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	libutils "github.com/opensourceways/community-robot-lib/utils"
 	"github.com/opensourceways/xihe-server/bigmodel/domain"
 	"github.com/sirupsen/logrus"
+	"github.com/victorzhou123/sse"
 )
 
 type glm2Request struct {
@@ -67,6 +67,85 @@ func (s *service) GLM2(ch chan string, input *domain.GLM2Input) (err error) {
 	return
 }
 
+// func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM2Input) (
+// 	err error,
+// ) {
+// 	t, err := genToken(&s.wukongInfo.cfg.CloudConfig)
+// 	if err != nil {
+// 		return
+// 	}
+
+// 	opt := toGLM2Req(input)
+// 	body, err := libutils.JsonMarshal(&opt)
+// 	if err != nil {
+// 		return
+// 	}
+
+// 	req, err := http.NewRequest(
+// 		http.MethodPost, endpoint, bytes.NewBuffer(body),
+// 	)
+// 	if err != nil {
+// 		return
+// 	}
+
+// 	req.Header.Set("X-Auth-Token", t)
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Connection", "keep-alive")
+// 	req.Header.Set("Accept", "*/*")
+
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return
+// 	}
+
+// 	reader := bufio.NewReader(resp.Body)
+
+// 	var r glm2Response
+// 	go func() {
+// 		defer func() { ec <- endpoint }()
+// 		defer resp.Body.Close()
+
+// 		for {
+// 			line, err := reader.ReadString('\n')
+// 			if err != nil {
+// 				ch <- "done"
+
+// 				return
+// 			}
+
+// 			fmt.Printf("line: %v\n", line)
+
+// 			data := strings.Replace(string(line), "data: ", "", 1)
+// 			data = strings.TrimRight(data, "\x00")
+
+// 			if err = json.Unmarshal([]byte(data), &r); err != nil {
+// 				continue
+// 			}
+
+// 			if r.StreamStatus == "DONE" {
+// 				ch <- "done"
+
+// 				return
+// 			}
+
+// 			// response audit
+// 			if r.Reply != "" {
+// 				if err = s.check.check(r.Reply); err != nil {
+// 					logrus.Debugf("content audit not pass: %s", err.Error())
+
+// 					ch <- "done"
+
+// 					return
+// 				}
+// 			}
+
+// 			ch <- r.Reply
+// 		}
+// 	}()
+
+// 	return
+// }
+
 func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM2Input) (
 	err error,
 ) {
@@ -88,62 +167,55 @@ func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM
 		return
 	}
 
-	req.Header.Set("X-Auth-Token", t)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Accept", "*/*")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	reader := bufio.NewReader(resp.Body)
-
-	var r glm2Response
-	go func() {
-		defer func() { ec <- endpoint }()
-		defer resp.Body.Close()
-
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				ch <- "done"
-
-				return
-			}
-
-			fmt.Printf("line: %v\n", line)
-
-			data := strings.Replace(string(line), "data: ", "", 1)
-			data = strings.TrimRight(data, "\x00")
-
-			if err = json.Unmarshal([]byte(data), &r); err != nil {
-				continue
-			}
-
-			if r.StreamStatus == "DONE" {
-				ch <- "done"
-
-				return
-			}
-
-			// response audit
-			if r.Reply != "" {
-				if err = s.check.check(r.Reply); err != nil {
-					logrus.Debugf("content audit not pass: %s", err.Error())
-
-					ch <- "done"
-
-					return
-				}
-			}
-
-			ch <- r.Reply
+	cli := sse.NewClient(endpoint, func(c *sse.Client) {
+		c.Headers = map[string]string{
+			"X-Auth-Token": t,
+			"Content-Type": "application/json",
+			"Connection":   "keep-alive",
 		}
-	}()
+
+		c.Request = req
+		c.Connection = http.DefaultClient
+		c.OnDisconnect(func(c *sse.Client) {
+			ec <- endpoint
+		})
+	})
+
+	// if err = ; err != nil {
+	// 	fmt.Printf("err2: %v\n", err)
+	// 	ch <- "done"
+	// }
+	go cli.Subscribe("", func(msg *sse.Event) {
+		fmt.Printf("string(msg.Data): %v\n", string(msg.Data))
+		ch <- s.toReply(string(msg.Data))
+	})
 
 	return
+}
+
+func (s *service) toReply(v string) string {
+	data := strings.TrimPrefix(v, "data: ")
+	data = strings.TrimRight(data, "\x00")
+
+	var r glm2Response
+	if err := json.Unmarshal([]byte(data), &r); err != nil {
+		return ""
+	}
+
+	if r.StreamStatus == "DONE" {
+		return "done"
+	}
+
+	// response audit
+	if r.Reply != "" {
+		if err := s.check.check(r.Reply); err != nil {
+			logrus.Debugf("content audit not pass: %s", err.Error())
+
+			return "done"
+		}
+	}
+
+	return ""
 }
 
 func toGLM2Req(input *domain.GLM2Input) glm2Request {

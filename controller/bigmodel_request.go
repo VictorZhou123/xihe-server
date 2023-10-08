@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/opensourceways/xihe-server/bigmodel/app"
@@ -444,6 +445,7 @@ type glm2Request struct {
 }
 
 func (req *glm2Request) toCmd(ch chan string, user types.Account) (cmd app.GLM2Cmd, err error) {
+	fmt.Printf("req: %+v\n", req)
 	if cmd.Text, err = domain.NewGLM2Text(req.Text); err != nil {
 		return
 	}

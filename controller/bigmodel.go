@@ -1026,10 +1026,10 @@ func (ctl *BigModelController) BaiChuan(ctx *gin.Context) {
 //	@Failure		500	system_error	system	error
 //	@Router			/v1/bigmodel/glm2_6b [post]
 func (ctl *BigModelController) GLM2(ctx *gin.Context) {
-	pl, _, ok := ctl.checkUserApiToken(ctx, false)
-	if !ok {
-		return
-	}
+	// pl, _, ok := ctl.checkUserApiToken(ctx, false)
+	// if !ok {
+	// 	return
+	// }
 
 	req := glm2Request{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -1039,7 +1039,8 @@ func (ctl *BigModelController) GLM2(ctx *gin.Context) {
 	}
 
 	ch := make(chan string)
-	cmd, err := req.toCmd(ch, pl.DomainAccount())
+	pl, _ := types.NewAccount("MindSpore")
+	cmd, err := req.toCmd(ch, pl)
 	if err != nil {
 		ctl.sendBadRequestParam(ctx, err)
 
@@ -1069,6 +1070,7 @@ func (ctl *BigModelController) GLM2(ctx *gin.Context) {
 
 	ctx.Stream(func(w io.Writer) bool {
 		if msg, ok := <-ch; ok {
+			fmt.Printf("msg: %v\n", msg)
 			if msg == "done" {
 				ctx.SSEvent("status", "done")
 				close(ch)
