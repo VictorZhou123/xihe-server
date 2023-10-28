@@ -13,56 +13,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type InferenceIndex = domain.InferenceIndex
-type InferenceDetail = domain.InferenceDetail
-
-type InferenceCreateCmd struct {
-	ProjectId     string
-	ProjectName   domain.ResourceName
-	ProjectOwner  domain.Account
-	ResourceLevel string
-
-	InferenceDir domain.Directory
-	BootFile     domain.FilePath
-}
-
-func (cmd *InferenceCreateCmd) Validate() error {
-	b := cmd.ProjectId != "" &&
-		cmd.ProjectName != nil &&
-		cmd.ProjectOwner != nil &&
-		cmd.InferenceDir != nil &&
-		cmd.BootFile != nil
-
-	if !b {
-		return errors.New("invalid cmd")
-	}
-
-	return nil
-}
-
-func (cmd *InferenceCreateCmd) toInference(v *domain.Inference, lastCommit, requester string) {
-	v.Project.Id = cmd.ProjectId
-	v.LastCommit = lastCommit
-	v.ProjectName = cmd.ProjectName
-	v.ResourceLevel = cmd.ResourceLevel
-	v.Project.Owner = cmd.ProjectOwner
-	v.Requester = requester
-}
-
 type InferenceService interface {
-	Create(string, *UserInfo, *InferenceCreateCmd) (InferenceDTO, string, error)
+	Create(*InferenceCreateInputCmd) (InferenceDTO, error)
 	Get(info *InferenceIndex) (InferenceDTO, error)
+	GetLastCommitIdByProjectId(*GetLastCommitIdByProjectIdCmd) (string, error)
 }
 
 func NewInferenceService(
 	p platform.RepoFile,
 	repo repository.Inference,
+	projectRepo repository.Project,
 	sender message.Sender,
 	minSurvivalTime int,
 ) InferenceService {
 	return inferenceService{
 		p:               p,
 		repo:            repo,
+		projectRepo:     projectRepo,
 		sender:          sender,
 		minSurvivalTime: int64(minSurvivalTime),
 	}
@@ -71,41 +38,60 @@ func NewInferenceService(
 type inferenceService struct {
 	p               platform.RepoFile
 	repo            repository.Inference
+	projectRepo     repository.Project
 	sender          message.Sender
 	minSurvivalTime int64
 }
 
-type InferenceDTO struct {
-	expiry     int64
-	Error      string `json:"error"`
-	AccessURL  string `json:"access_url"`
-	InstanceId string `json:"inference_id"`
-}
-
-func (dto *InferenceDTO) hasResult() bool {
-	return dto.InstanceId != ""
-}
-
-func (dto *InferenceDTO) canReuseCurrent() bool {
-	return dto.AccessURL != ""
-}
-
-func (s inferenceService) Create(user string, owner *UserInfo, cmd *InferenceCreateCmd) (
-	dto InferenceDTO, sha string, err error,
-) {
-	sha, b, err := s.p.GetDirFileInfo(owner, &platform.RepoDirFile{
-		RepoName: cmd.ProjectName,
-		Dir:      cmd.InferenceDir,
-		File:     cmd.BootFile,
-	})
+func (s inferenceService) Create(cmd *InferenceCreateInputCmd) (dto InferenceDTO, err error) {
+	// get project summary
+	v, err := s.projectRepo.GetSummary(cmd.Owner, cmd.ProjectId)
 	if err != nil {
 		return
 	}
 
-	if !b {
-		err = ErrorUnavailableRepoFile{
-			errors.New("no boot file"),
-		}
+	// is private
+	if v.IsPrivate() {
+		err = errors.New("project is private")
+
+		return
+	}
+
+	// get resource level
+	var level string
+	if level, err = s.getResourceLevel(v.Owner, v.Id); err != nil {
+		return
+	}
+
+	// create
+	inferenceDir, _ := domain.NewDirectory(appConfig.InferenceDir)
+	inferenceBootFile, _ := domain.NewFilePath(appConfig.InferenceBootFile)
+	inferCreateCmd := inferenceCreateCmd{
+		ProjectId:     v.Id,
+		ProjectName:   v.Name,
+		ProjectOwner:  v.Owner,
+		ResourceLevel: level,
+		InferenceDir:  inferenceDir,
+		BootFile:      inferenceBootFile,
+	}
+
+	dto, err = s.create(cmd.User.Account(), v.Owner, &inferCreateCmd)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s inferenceService) create(user string, owner domain.Account, cmd *inferenceCreateCmd) (
+	dto InferenceDTO, err error,
+) {
+	sha, err := s.getLastCommitId(&getLastCommitIdCmd{
+		User:        owner,
+		RepoDirFile: cmd.toRepoDirFile(),
+	})
+	if err != nil {
+		return
 	}
 
 	instance := new(domain.Inference)
@@ -152,6 +138,9 @@ func (s inferenceService) Create(user string, owner *UserInfo, cmd *InferenceCre
 
 func (s inferenceService) Get(index *InferenceIndex) (dto InferenceDTO, err error) {
 	v, err := s.repo.FindInstance(index)
+	if err != nil {
+		return
+	}
 
 	dto.Error = v.Error
 	dto.AccessURL = v.AccessURL
@@ -197,6 +186,68 @@ func (s inferenceService) check(instance *domain.Inference) (
 	}
 
 	return
+}
+
+func (s inferenceService) getResourceLevel(owner domain.Account, pid string) (level string, err error) {
+	resources, err := s.projectRepo.FindUserProjects(
+		[]repository.UserResourceListOption{
+			{
+				Owner: owner,
+				Ids: []string{
+					pid,
+				},
+			},
+		},
+	)
+
+	if err != nil || len(resources) < 1 {
+		return
+	}
+
+	if resources[0].Level != nil {
+		level = resources[0].Level.ResourceLevel()
+	}
+
+	return
+}
+
+func (s inferenceService) getLastCommitId(cmd *getLastCommitIdCmd) (string, error) {
+	u := platform.UserInfo{
+		User: cmd.User,
+	}
+
+	sha, b, err := s.p.GetDirFileInfo(&u, &cmd.RepoDirFile)
+	if err != nil {
+		return "", err
+	}
+
+	if !b {
+		err = ErrorUnavailableRepoFile{
+			errors.New("no boot file"),
+		}
+	}
+
+	return sha, nil
+}
+
+func (s inferenceService) GetLastCommitIdByProjectId(cmd *GetLastCommitIdByProjectIdCmd) (string, error) {
+	// get project name
+	p, err := s.projectRepo.Get(cmd.User, cmd.ProjectId)
+	if err != nil {
+		return "", err
+	}
+
+	inferenceDir, _ := domain.NewDirectory(appConfig.InferenceDir)
+	inferenceBootFile, _ := domain.NewFilePath(appConfig.InferenceBootFile)
+
+	return s.getLastCommitId(&getLastCommitIdCmd{
+		User: cmd.User,
+		RepoDirFile: platform.RepoDirFile{
+			RepoName: p.Name,
+			Dir:      inferenceDir,
+			File:     inferenceBootFile,
+		},
+	})
 }
 
 type InferenceInternalService interface {

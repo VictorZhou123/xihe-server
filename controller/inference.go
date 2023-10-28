@@ -7,12 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-server/app"
-	"github.com/opensourceways/xihe-server/domain"
 	"github.com/opensourceways/xihe-server/domain/message"
 	"github.com/opensourceways/xihe-server/domain/platform"
 	"github.com/opensourceways/xihe-server/domain/repository"
+	"github.com/opensourceways/xihe-server/user/domain"
 	"github.com/opensourceways/xihe-server/utils"
 )
 
@@ -25,50 +26,97 @@ func AddRouterForInferenceController(
 ) {
 	ctl := InferenceController{
 		s: app.NewInferenceService(
-			p, repo, sender, apiConfig.MinSurvivalTimeOfInference,
+			p, repo, project, sender, apiConfig.MinSurvivalTimeOfInference,
 		),
 		project: project,
 	}
 
-	ctl.inferenceDir, _ = domain.NewDirectory(apiConfig.InferenceDir)
-	ctl.inferenceBootFile, _ = domain.NewFilePath(apiConfig.InferenceBootFile)
-
-	rg.GET("/v1/inference/project/:owner/:pid", ctl.Create)
+	rg.POST("/v1/inference/project", ctl.Create)
+	rg.GET("/v1/inference/project/:owner/:pid/:instid", ctl.Get)
 }
 
 type InferenceController struct {
 	baseController
 
-	s app.InferenceService
-
 	project repository.Project
 
-	inferenceDir      domain.Directory
-	inferenceBootFile domain.FilePath
+	s app.InferenceService
 }
 
 // @Summary		Create
 // @Description	create inference
 // @Tags			Inference
-// @Param			owner	path	string	true	"project owner"
-// @Param			pid		path	string	true	"project id"
+// @Param			body	body	InferenceCreateRequest	true	"body of creating inference"
 // @Accept			json
 // @Success		201	{object}			app.InferenceDTO
 // @Failure		400	bad_request_body	can't	parse		request	body
 // @Failure		401	bad_request_param	some	parameter	of		body	is	invalid
 // @Failure		500	system_error		system	error
-// @Router			/v1/inference/project/{owner}/{pid} [get]
+// @Router			/v1/inference/project [post]
 func (ctl *InferenceController) Create(ctx *gin.Context) {
-	pl, csrftoken, _, ok := ctl.checkTokenForWebsocket(ctx, true)
+	pl, _, ok := ctl.checkUserApiToken(ctx, true)
 	if !ok {
 		return
 	}
 
-	visitor := true
-	projectId := ctx.Param("pid")
+	var u domain.Account
+	if pl.Account == "" {
+		u, _ = domain.NewAccount("unknow")
+	} else {
+		u = pl.DomainAccount()
+	}
 
-	if csrftoken != "visitor-"+projectId {
-		visitor = false
+	req := InferenceCreateRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(
+			errorBadRequestBody,
+			"can't fetch request body",
+		))
+
+		return
+	}
+
+	cmd, err := req.toCmd(u)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newResponseCodeError(
+			errorBadRequestParam, err,
+		))
+
+		return
+	}
+
+	dto, err := ctl.s.Create(&cmd)
+	if err != nil {
+		ctl.sendRespWithInternalError(ctx, newResponseError(err))
+
+		log.Errorf("inference failed err:%s", err.Error())
+
+		return
+	}
+
+	utils.DoLog("", pl.Account, "create gradio",
+		fmt.Sprintf("projectid: %s", cmd.ProjectId), "success")
+
+	ctx.JSON(http.StatusCreated, newResponseData(dto))
+}
+
+// @Summary		Get
+// @Description	create inference
+// @Tags			Inference
+// @Param			owner			path	string	true	"project owner"
+// @Param			pid				path	string	true	"project id"
+// @Param			instid			path	string	true	"inference id"
+// @Param			lastcommit		path	string	true	"last commit id"
+// @Accept			json
+// @Success		201	{object}			app.InferenceDTO
+// @Failure		400	bad_request_body	can't	parse		request	body
+// @Failure		401	bad_request_param	some	parameter	of		body	is	invalid
+// @Failure		500	system_error		system	error
+// @Router			/v1/inference/project/{owner}/{pid}/{instid} [get]
+func (ctl *InferenceController) Get(ctx *gin.Context) {
+	_, csrftoken, _, ok := ctl.checkTokenForWebsocket(ctx, true)
+	if !ok {
+		return
 	}
 
 	// setup websocket
@@ -91,96 +139,43 @@ func (ctl *InferenceController) Create(ctx *gin.Context) {
 
 	defer ws.Close()
 
-	// start
 	owner, err := domain.NewAccount(ctx.Param("owner"))
 	if err != nil {
-		ws.WriteJSON(
-			newResponseCodeError(errorBadRequestParam, err),
-		)
-
-		log.Errorf("inference failed: new account, err:%s", err.Error())
+		ws.WriteJSON(newResponseError(err))
 
 		return
 	}
 
-	v, err := ctl.project.GetSummary(owner, projectId)
+	lastCommit, err := ctl.s.GetLastCommitIdByProjectId(&app.GetLastCommitIdByProjectIdCmd{
+		User:      owner,
+		ProjectId: ctx.Param("pid"),
+	})
 	if err != nil {
+		logrus.Debugf("get last commit id error: %s", err.Error())
+
 		ws.WriteJSON(newResponseError(err))
 
-		log.Errorf("inference failed: get summary, err:%s", err.Error())
-
 		return
 	}
 
-	viewOther := visitor || pl.isNotMe(owner)
-
-	if v.IsPrivate() {
-		ws.WriteJSON(
-			newResponseCodeMsg(
-				errorNotAllowed,
-				"project is not found",
-			),
-		)
-
-		log.Debug("inference failed: project is private")
-
-		return
-	}
-
-	var level string
-	if level, err = ctl.getResourceLevel(owner, projectId); err != nil {
-		ws.WriteJSON(newResponseError(err))
-
-		log.Errorf("inference failed: get reource, err:%s", err.Error())
-
-		return
-	}
-
-	u := platform.UserInfo{}
-	if viewOther {
-		u.User = owner
-	} else {
-		u = pl.PlatformUserInfo()
-	}
-
-	cmd := app.InferenceCreateCmd{
-		ProjectId:     v.Id,
-		ProjectName:   v.Name,
-		ProjectOwner:  owner,
-		ResourceLevel: level,
-		InferenceDir:  ctl.inferenceDir,
-		BootFile:      ctl.inferenceBootFile,
-	}
-
-	dto, lastCommit, err := ctl.s.Create(pl.Account, &u, &cmd)
+	// start
+	info, err := toInferenceIndex(
+		ctx.Param("instid"),
+		lastCommit,
+		ctx.Param("pid"),
+		ctx.Param("owner"),
+	)
 	if err != nil {
-		ws.WriteJSON(newResponseError(err))
-
-		log.Errorf("inference failed: create, err:%s", err.Error())
-
-		return
-	}
-
-	utils.DoLog("", pl.Account, "create gradio",
-		fmt.Sprintf("projectid: %s", v.Id), "success")
-
-	if dto.Error != "" || dto.AccessURL != "" {
-		ws.WriteJSON(newResponseData(dto))
+		ctx.JSON(http.StatusBadRequest, newResponseCodeError(
+			errorBadRequestParam, err,
+		))
 
 		return
 	}
 
-	time.Sleep(10 * time.Second)
-
-	info := app.InferenceIndex{
-		Id:         dto.InstanceId,
-		LastCommit: lastCommit,
-	}
-	info.Project.Id = projectId
-	info.Project.Owner = owner
-
+	// cycle query
 	for i := 0; i < apiConfig.InferenceTimeout; i++ {
-		dto, err = ctl.s.Get(&info)
+		dto, err := ctl.s.Get(&info)
 		if err != nil {
 			ws.WriteJSON(newResponseError(err))
 
@@ -205,27 +200,4 @@ func (ctl *InferenceController) Create(ctx *gin.Context) {
 	log.Error("inference timeout")
 
 	ws.WriteJSON(newResponseCodeMsg(errorSystemError, "timeout"))
-}
-
-func (ctl *InferenceController) getResourceLevel(owner domain.Account, pid string) (level string, err error) {
-	resources, err := ctl.project.FindUserProjects(
-		[]repository.UserResourceListOption{
-			{
-				Owner: owner,
-				Ids: []string{
-					pid,
-				},
-			},
-		},
-	)
-
-	if err != nil || len(resources) < 1 {
-		return
-	}
-
-	if resources[0].Level != nil {
-		level = resources[0].Level.ResourceLevel()
-	}
-
-	return
 }

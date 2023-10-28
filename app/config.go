@@ -9,6 +9,10 @@ func Init(cfg *Config) {
 type Config struct {
 	WuKongMaxLikeNum int `json:"wukong_max_like_num"     required:"true"`
 	FinetuneMaxNum   int `json:"finetune_max_num"        required:"true"`
+
+	// inference
+	InferenceDir      string `json:"inference_dir"`
+	InferenceBootFile string `json:"inference_boot_file"`
 }
 
 func (cfg *Config) SetDefault() {
@@ -18,5 +22,13 @@ func (cfg *Config) SetDefault() {
 
 	if cfg.FinetuneMaxNum <= 0 {
 		cfg.FinetuneMaxNum = 5
+	}
+
+	if cfg.InferenceDir == "" {
+		cfg.InferenceDir = "inference"
+	}
+
+	if cfg.InferenceBootFile == "" {
+		cfg.InferenceBootFile = "inference/app.py"
 	}
 }

@@ -63,8 +63,6 @@ type APIConfig struct {
 	EncryptionKeyForGitlabToken    string `json:"encryption_key_gitlab_token" required:"true"`
 	DefaultPassword                string `json:"default_password"            required:"true"`
 	MaxTrainingRecordNum           int    `json:"max_training_record_num"     required:"true"`
-	InferenceDir                   string `json:"inference_dir"`
-	InferenceBootFile              string `json:"inference_boot_file"`
 	InferenceTimeout               int    `json:"inference_timeout"`
 	PodTimeout                     int    `json:"pod_timeout"`
 	MaxPictureSizeToDescribe       int64  `json:"-"`
@@ -78,14 +76,6 @@ type APIConfig struct {
 func (cfg *APIConfig) SetDefault() {
 	if cfg.MinSurvivalTimeOfInference <= 0 {
 		cfg.MinSurvivalTimeOfInference = 3600
-	}
-
-	if cfg.InferenceDir == "" {
-		cfg.InferenceDir = "inference"
-	}
-
-	if cfg.InferenceBootFile == "" {
-		cfg.InferenceBootFile = "inference/app.py"
 	}
 
 	if cfg.InferenceTimeout <= 0 {
@@ -113,12 +103,6 @@ func (cfg *APIConfig) Validate() (err error) {
 	if _, err = domain.NewPassword(cfg.DefaultPassword); err != nil {
 		return
 	}
-
-	if _, err = domain.NewDirectory(cfg.InferenceDir); err != nil {
-		return
-	}
-
-	_, err = domain.NewFilePath(cfg.InferenceBootFile)
 
 	return
 }
