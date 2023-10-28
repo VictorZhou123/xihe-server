@@ -179,6 +179,8 @@ func (ctl *InferenceController) Create(ctx *gin.Context) {
 	info.Project.Id = projectId
 	info.Project.Owner = owner
 
+	fmt.Printf("info: %+v\n", info)
+
 	for i := 0; i < apiConfig.InferenceTimeout; i++ {
 		dto, err = ctl.s.Get(&info)
 		if err != nil {

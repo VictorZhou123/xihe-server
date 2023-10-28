@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/opensourceways/xihe-server/domain"
 	"github.com/opensourceways/xihe-server/domain/inference"
@@ -98,6 +99,9 @@ func (s inferenceService) Create(user string, owner *UserInfo, cmd *InferenceCre
 		Dir:      cmd.InferenceDir,
 		File:     cmd.BootFile,
 	})
+
+	fmt.Printf("sha: %v\n", sha)
+
 	if err != nil {
 		return
 	}
