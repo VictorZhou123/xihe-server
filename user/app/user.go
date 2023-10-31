@@ -10,6 +10,7 @@ import (
 	pointsPort "github.com/opensourceways/xihe-server/user/domain/points"
 	"github.com/opensourceways/xihe-server/user/domain/repository"
 	"github.com/opensourceways/xihe-server/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type UserService interface {
@@ -75,7 +76,7 @@ func (s userService) Create(cmd *UserCreateCmd) (dto UserDTO, err error) {
 	s.toUserDTO(&u, &dto)
 
 	_ = s.sender.AddOperateLogForNewUser(u.Account)
-	
+
 	_ = s.sender.SendUserSignedUpEvent(&domain.UserSignedUpEvent{
 		Account: cmd.Account,
 	})
@@ -99,12 +100,16 @@ func (s userService) GetByAccount(account domain.Account) (dto UserDTO, err erro
 		return
 	}
 
+	logrus.Debugf("get user info from db: %+v", v)
+
 	if v.PlatformToken != "" {
 		token := v.PlatformToken
 		v.PlatformToken, err = s.decryptToken(token)
 		if err != nil {
 			return
 		}
+		
+		logrus.Debugf("after decrypt token: %+v", v)
 	}
 
 	s.toUserDTO(&v, &dto)

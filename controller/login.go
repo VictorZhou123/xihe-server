@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-server/app"
 	"github.com/opensourceways/xihe-server/domain"
@@ -45,6 +46,7 @@ func (pl *oldUserTokenPayload) isMyself(a domain.Account) bool {
 }
 
 func (pl *oldUserTokenPayload) hasEmail() bool {
+	logrus.Debugf("login user email: %s, gitlabtoken: %s", pl.Email, pl.PlatformToken)
 	return pl.Email != "" && pl.PlatformToken != ""
 }
 
@@ -101,6 +103,8 @@ func (ctl *LoginController) Login(ctx *gin.Context) {
 
 	user, err := ctl.us.GetByAccount(info.Name)
 	if err != nil {
+		logrus.Debugf("get by account function error: %s", err.Error())
+
 		if d := newResponseError(err); d.Code != errorResourceNotExists {
 			ctl.sendRespWithInternalError(ctx, d)
 
@@ -121,6 +125,8 @@ func (ctl *LoginController) Login(ctx *gin.Context) {
 	if err := ctl.newLogin(ctx, info); err != nil {
 		return
 	}
+
+	logrus.Debugf("login user info: %+v", user)
 
 	payload := oldUserTokenPayload{
 		Account:                 user.Account,
