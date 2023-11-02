@@ -3,6 +3,7 @@ package gitlab
 import (
 	"strconv"
 
+	"github.com/sirupsen/logrus"
 	sdk "github.com/xanzy/go-gitlab"
 
 	"github.com/opensourceways/xihe-server/domain"
@@ -24,6 +25,8 @@ type repository struct {
 
 // TODO admin create repo instead
 func (r *repository) New(repo *platform.RepoOption) (string, error) {
+	logrus.Debugf("user info in New Project: %+v", r.user)
+
 	cli, err := sdk.NewClient(r.user.Token, sdk.WithBaseURL(endpoint))
 	if err != nil {
 		return "", err

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-server/app"
 	"github.com/opensourceways/xihe-server/domain"
@@ -128,6 +129,8 @@ func (ctl *LoginController) Login(ctx *gin.Context) {
 		PlatformToken:           user.Platform.Token,
 		PlatformUserNamespaceId: user.Platform.NamespaceId,
 	}
+
+	logrus.Debugf("payload info while login: %+v", payload)
 
 	token, csrftoken, err := ctl.newApiToken(ctx, payload)
 	if err != nil {
