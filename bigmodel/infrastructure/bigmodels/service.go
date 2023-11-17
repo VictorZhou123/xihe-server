@@ -149,12 +149,29 @@ func (s *service) doIfFree(
 	}
 }
 
+func (s *service) doOrWaiting(
+	ec chan string,
+	f func(string) error,
+) error {
+	select {
+	case e := <-ec:
+		err := f(e)
+		ec <- e
+
+		return err
+
+	case <-time.After(2 * 60 * time.Second):
+		return bigmodel.NewErrorBusySource(errors.New("access overload, please try again later"))
+	}
+}
+
 func (s *service) doWaitAndEndpointNotReturned(
 	ec chan string,
 	f func(chan string, string) error,
 ) error {
+	var e string
 	select {
-	case e := <-ec:
+	case e = <-ec:
 		err := f(ec, e)
 		if err != nil {
 			ec <- e // return endpoint to channel while function returns error

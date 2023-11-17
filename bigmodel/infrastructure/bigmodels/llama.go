@@ -52,6 +52,8 @@ func (s *service) LLAMA2(ch chan string, input *domain.LLAMA2Input) (err error) 
 		return
 	}
 
+	logrus.Debugf("llama2 endpoints left: %d", len(s.llama2Info.endpoints))
+
 	// call bigmodel llama2
 	f := func(ec chan string, e string) (err error) {
 		err = s.genllama2(ec, ch, e, input)

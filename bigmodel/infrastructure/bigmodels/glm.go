@@ -52,21 +52,19 @@ func (s *service) GLM2(ch chan string, input *domain.GLM2Input) (err error) {
 		return
 	}
 
+	logrus.Debugf("glm2 endpoints left: %d", len(s.glm2Info.endpoints))
+
 	// call bigmodel glm2
-	f := func(ec chan string, e string) (err error) {
-		err = s.genGLM2(ec, ch, e, input)
-
-		return
+	f := func(e string) (err error) {
+		return s.genGLM2(ch, e, input)
 	}
 
-	if err = s.doWaitAndEndpointNotReturned(s.glm2Info.endpoints, f); err != nil {
-		return
-	}
+	go s.doOrWaiting(s.glm2Info.endpoints, f)
 
 	return
 }
 
-func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM2Input) (
+func (s *service) genGLM2(ch chan string, endpoint string, input *domain.GLM2Input) (
 	err error,
 ) {
 	t, err := genToken(&s.wukongInfo.cfg.CloudConfig)
@@ -96,57 +94,53 @@ func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
 	reader := bufio.NewReader(resp.Body)
 
 	var (
+		line  string
 		r     glm2Response
 		count int
 	)
-	go func() {
-		defer func() { ec <- endpoint }()
-		defer resp.Body.Close()
+	for {
+		line, err = reader.ReadString('\n')
+		if err != nil {
+			ch <- "done"
 
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				ch <- "done"
-
-				return
-			}
-
-			data := strings.Replace(string(line), "data: ", "", 1)
-			data = strings.TrimRight(data, "\x00")
-
-			if err = json.Unmarshal([]byte(data), &r); err != nil {
-				continue
-			}
-
-			if r.StreamStatus == "DONE" {
-				ch <- "done"
-
-				return
-			}
-
-			// response audit, skip 6 response
-			if r.Reply != "" && count > 6 {
-				count = 0
-
-				if err = s.check.check(r.Reply); err != nil {
-					logrus.Debugf("content audit not pass: %s", err.Error())
-
-					ch <- "done"
-
-					return
-				}
-			}
-
-			ch <- r.Reply
-			count += 1
+			return
 		}
-	}()
 
-	return
+		data := strings.Replace(string(line), "data: ", "", 1)
+		data = strings.TrimRight(data, "\x00")
+
+		if err = json.Unmarshal([]byte(data), &r); err != nil {
+			continue
+		}
+
+		if r.StreamStatus == "DONE" {
+			ch <- "done"
+
+			return
+		}
+
+		// response audit, skip 6 response
+		if r.Reply != "" && count > 6 {
+			count = 0
+
+			if err = s.check.check(r.Reply); err != nil {
+				logrus.Debugf("content audit not pass: %s", err.Error())
+
+				ch <- "done"
+
+				return
+			}
+		}
+
+		ch <- r.Reply
+		count += 1
+	}
+
 }
 
 func toGLM2Req(input *domain.GLM2Input) glm2Request {
