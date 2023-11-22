@@ -187,3 +187,19 @@ func (impl workRepoImpl) FindWorks(cid string) (ws []domain.Work, err error) {
 
 	return
 }
+
+func (impl workRepoImpl) FindWorkByRepo(repo string) (work domain.Work, err error) {
+	var v dWork
+
+	f := func (ctx context.Context) error {
+		return impl.cli.GetDoc(ctx, bson.M{fieldRepo: repo}, nil, &v)
+	}
+
+	if err = withContext(f); err != nil {
+		return
+	}
+
+	v.toWork(&work)
+
+	return
+}

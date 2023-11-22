@@ -176,6 +176,29 @@ func (impl playerRepoImpl) FindPlayer(cid string, a types.Account) (
 	return
 }
 
+// FindPlayerById
+func (impl playerRepoImpl) FindPlayerById(pid string) (
+	p domain.Player, err error,
+) {
+	var v dPlayer
+
+	f := func(ctx context.Context) error {
+		return impl.cli.GetDoc(ctx, bson.M{fieldId: pid}, nil, &v)
+	}
+
+	if err = withContext(f); err != nil {
+		if impl.cli.IsDocNotExists(err) {
+			err = repoerr.NewErrorResourceNotExists(err)
+		}
+	} else {
+		if err = v.toPlayer(&p); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 // FindCompetitionsUserApplied
 func (impl playerRepoImpl) FindCompetitionsUserApplied(a types.Account) (
 	r []string, err error,

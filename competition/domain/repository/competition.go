@@ -47,6 +47,8 @@ type Player interface {
 	ResumePlayer(cid string, a types.Account) (err error)
 
 	DeletePlayer(p *domain.Player, version int) error
+
+	FindPlayerById(pid string) (domain.Player, error)
 }
 
 type Work interface {
@@ -57,4 +59,5 @@ type Work interface {
 
 	FindWork(domain.WorkIndex, domain.CompetitionPhase) (domain.Work, int, error)
 	FindWorks(cid string) ([]domain.Work, error)
+	FindWorkByRepo(repo string) (domain.Work, error)
 }

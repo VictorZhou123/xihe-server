@@ -152,6 +152,22 @@ type CompetitionTeamDTO struct {
 	Members []CompetitionTeamMemberDTO `json:"members"`
 }
 
+func (s competitionInternalService) toCompetitionTeamDTO(
+	player *domain.Player, dto *CompetitionTeamDTO,
+) {
+	team := make([]CompetitionTeamMemberDTO, len(player.Team.Members))
+	for i := range team {
+		team[i] = CompetitionTeamMemberDTO{
+			Name:    player.Team.Members[i].Name.CompetitorName(),
+			Email:   player.Team.Members[i].Email.Email(),
+			Account: player.Team.Members[i].Account.Account(),
+		}
+	}
+
+	dto.Members = team
+	dto.Name = player.Team.Name.TeamName()
+}
+
 type CompetitionTeamMemberDTO struct {
 	Name    string `json:"name"`
 	Role    string `json:"role"`
@@ -238,4 +254,8 @@ type CompetitionGetSubmissionCmd struct {
 	Id      string
 	User    types.Account
 	Project types.ResourceSummary
+}
+
+type CompetitionRepoCmd struct {
+	Repo string
 }

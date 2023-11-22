@@ -12,16 +12,19 @@ type CompetitionSubmissionUpdateCmd = domain.SubmissionUpdatingInfo
 // Internal Service
 type CompetitionInternalService interface {
 	UpdateSubmission(*CompetitionSubmissionUpdateCmd) error
+	GetTeamMembers(string) (CompetitionTeamDTO, error)
 }
 
-func NewCompetitionInternalService(repo repository.Work) CompetitionInternalService {
+func NewCompetitionInternalService(repo repository.Work, playerRepo repository.Player) CompetitionInternalService {
 	return competitionInternalService{
-		repo: repo,
+		repo:       repo,
+		playerRepo: playerRepo,
 	}
 }
 
 type competitionInternalService struct {
-	repo repository.Work
+	repo       repository.Work
+	playerRepo repository.Player
 }
 
 func (s competitionInternalService) UpdateSubmission(cmd *CompetitionSubmissionUpdateCmd) error {
@@ -41,4 +44,22 @@ func (s competitionInternalService) UpdateSubmission(cmd *CompetitionSubmissionU
 	}
 
 	return s.repo.SaveSubmission(&w, &v)
+}
+
+func (s competitionInternalService) GetTeamMembers(repo string) (dto CompetitionTeamDTO, err error) {
+	// get work
+	work, err := s.repo.FindWorkByRepo(repo)
+	if err != nil {
+		return
+	}
+
+	// get player
+	player, err := s.playerRepo.FindPlayerById(work.PlayerId)
+	if err != nil {
+		return
+	}
+
+	s.toCompetitionTeamDTO(&player, &dto)
+
+	return
 }
