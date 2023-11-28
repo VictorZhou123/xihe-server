@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	libutils "github.com/opensourceways/community-robot-lib/utils"
+	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/xihe-server/bigmodel/domain"
 	types "github.com/opensourceways/xihe-server/domain"
@@ -150,6 +151,8 @@ func (s *service) GenPicturesByWuKong(
 		i++
 	}
 	if err := s.check.checkImages(checkUrls); err != nil {
+		logrus.Debugf("check images error: %v", err)
+		
 		return nil, err
 	}
 

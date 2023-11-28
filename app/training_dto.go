@@ -161,3 +161,83 @@ func (s trainingService) toTrainingDTO(dto *TrainingDTO, ut *domain.UserTraining
 		dto.Desc = t.Desc.TrainingDesc()
 	}
 }
+
+type TrainingConfigDTO struct {
+	Name string `json:"name"`
+	Desc string `json:"desc"`
+
+	CodeDir  string `json:"code_dir"`
+	BootFile string `json:"boot_file"`
+
+	Hyperparameters []KeyValue    `json:"hyperparameter"`
+	Env             []KeyValue    `json:"env"`
+	Models          []TrainingRef `json:"models"`
+	Datasets        []TrainingRef `json:"datasets"`
+	EnableAim       bool          `json:"enable_aim"`
+	EnableOutput    bool          `json:"enable_output"`
+
+	Compute Compute `json:"compute"`
+}
+
+type Compute struct {
+	Type    string `json:"type"`
+	Flavor  string `json:"flavor"`
+	Version string `json:"version"`
+}
+
+type KeyValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type TrainingRef struct {
+	Key   string `json:"key"`
+	Owner string `json:"owner"`
+	Name  string `json:"name"`
+	File  string `json:"File"`
+}
+
+func toTrainingConfigDTO(config *domain.TrainingConfig) TrainingConfigDTO {
+	return TrainingConfigDTO{
+		Name: config.Name.TrainingName(),
+		Desc: config.Desc.TrainingDesc(),
+
+		CodeDir:  config.CodeDir.Directory(),
+		BootFile: config.BootFile.FilePath(),
+
+		Hyperparameters: toKeyValue(config.Hyperparameters),
+		Env: toKeyValue(config.Env),
+		Models: toTrainingRef(config.Inputs),
+
+		EnableAim:    config.EnableAim,
+		EnableOutput: config.EnableOutput,
+	}
+}
+
+func toKeyValue(kv []domain.KeyValue) []KeyValue {
+	keyValue := make([]KeyValue, len(kv))
+
+	for i := range kv {
+		keyValue[i] = KeyValue{
+			Key:   kv[i].Key.CustomizedKey(),
+			Value: kv[i].Value.CustomizedValue(),
+		}
+	}
+
+	return keyValue
+}
+
+func toTrainingRef(inputs []domain.Input) []TrainingRef {
+	trainingRef := make([]TrainingRef, len(inputs))
+
+	for i := range inputs {
+		trainingRef[i] = TrainingRef{
+			Key:   inputs[i].Key.CustomizedKey(),
+			Owner: inputs[i].User.Account(),
+			// TODO missing name
+			File: inputs[i].File.InputeFilePath(),
+		}
+	}
+
+	return trainingRef
+}

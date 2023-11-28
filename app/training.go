@@ -20,6 +20,7 @@ const (
 type JobDetail = domain.JobDetail
 type TrainingIndex = domain.TrainingIndex
 type TrainingConfig = domain.TrainingConfig
+type ProjectIndex = domain.ResourceIndex
 
 type TrainingService interface {
 	Create(*TrainingCreateCmd) (string, error)
@@ -32,6 +33,7 @@ type TrainingService interface {
 	GetLogDownloadURL(*TrainingIndex) (string, string, error)
 	GetOutputDownloadURL(*TrainingIndex) (string, string, error)
 	CreateTrainingJob(*TrainingIndex, string, bool) (bool, error)
+	GetHistoricalTrainingParams(*ProjectIndex) (TrainingConfigDTO, error)
 }
 
 func NewTrainingService(
@@ -132,6 +134,11 @@ func (s trainingService) create(
 	})
 	if err != nil {
 		s.log.Errorf("send message of creating training failed, err:%s", err.Error())
+	}
+
+	// save training config
+	if err := s.repo.SetTrainingConfig(config); err != nil {
+		logrus.Warnf("set historical training config failed: %v", err)
 	}
 
 	return r, nil
@@ -296,4 +303,15 @@ func (s trainingService) createTrainingJob(info *TrainingIndex, endpoint string)
 	}
 
 	return
+}
+
+func (s trainingService) GetHistoricalTrainingParams(index *ProjectIndex) (
+	dto TrainingConfigDTO, err error,
+) {
+	config, err := s.repo.GetHistoricalTrainingConfig(index)
+	if err != nil {
+		return
+	}
+
+	return toTrainingConfigDTO(&config), nil
 }

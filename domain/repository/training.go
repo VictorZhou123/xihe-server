@@ -17,4 +17,7 @@ type Training interface {
 
 	UpdateJobDetail(*domain.TrainingIndex, *domain.JobDetail) error
 	GetJobDetail(*domain.TrainingIndex) (domain.JobDetail, string, error)
+
+	GetHistoricalTrainingConfig(*domain.ResourceIndex) (domain.TrainingConfig, error)
+	SetTrainingConfig(*domain.TrainingConfig) error
 }
