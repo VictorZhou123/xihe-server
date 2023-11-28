@@ -49,6 +49,8 @@ func (s *asyncBigModelService) WuKong(tid uint64, user types.Account, cmd *WuKon
 
 	links, err := s.fm.GenPicturesByWuKong(user, &cmd.WuKongPictureMeta, cmd.EsType)
 	if err != nil {
+		logrus.Warnf("gen wukong picture error: %s", err.Error())
+
 		if !bigmodel.IsErrorSensitiveInfo(err) {
 			err = errors.New("internal error")
 		}
