@@ -101,6 +101,7 @@ func (s *service) GenPicturesByWuKong(
 	user types.Account, desc *domain.WuKongPictureMeta, estype string,
 ) (map[string]string, error) {
 	if err := s.check.check(desc.Desc.WuKongPictureDesc()); err != nil {
+		fmt.Printf("\"1\": %v\n", "1")
 		return nil, err
 	}
 
@@ -126,6 +127,7 @@ func (s *service) GenPicturesByWuKong(
 	}
 
 	if err := s.doIfFree(es, f); err != nil {
+		fmt.Printf("\"2\": %v\n", "2")
 		return nil, err
 	}
 
@@ -137,6 +139,7 @@ func (s *service) GenPicturesByWuKong(
 	for _, p := range v {
 		l, err := info.cli.genFileDownloadURL(bucket, p, expiry)
 		if err != nil {
+			fmt.Printf("\"8\": %v\n", "8")
 			return nil, err
 		}
 		r[p] = l
@@ -150,6 +153,7 @@ func (s *service) GenPicturesByWuKong(
 		i++
 	}
 	if err := s.check.checkImages(checkUrls); err != nil {
+		fmt.Printf("\"3\": %v\n", "3")
 		return nil, err
 	}
 
@@ -161,6 +165,7 @@ func (s *service) genPicturesByWuKong(
 ) ([]string, error) {
 	t, err := genToken(&s.wukongInfo.cfg.CloudConfig)
 	if err != nil {
+		fmt.Printf("\"4\": %v\n", "4")
 		return nil, err
 	}
 
@@ -171,6 +176,7 @@ func (s *service) genPicturesByWuKong(
 	}
 	body, err := libutils.JsonMarshal(&opt)
 	if err != nil {
+		fmt.Printf("\"5\": %v\n", "5")
 		return nil, err
 	}
 
@@ -178,6 +184,7 @@ func (s *service) genPicturesByWuKong(
 		http.MethodPost, endpoint, bytes.NewBuffer(body),
 	)
 	if err != nil {
+		fmt.Printf("\"6\": %v\n", "6")
 		return nil, err
 	}
 
@@ -186,6 +193,7 @@ func (s *service) genPicturesByWuKong(
 
 	var r wukongResponse
 	if _, err = s.hc.ForwardTo(req, &r); err != nil {
+		fmt.Printf("\"7\": %v\n", "7")
 		return nil, err
 	}
 

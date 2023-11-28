@@ -1,6 +1,7 @@
 package bigmodels
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/huaweicloud/huaweicloud-sdk-go-obs/obs"
@@ -41,6 +42,7 @@ func (s *obsService) genFileDownloadURL(bucket, p string, downloadExpiry int) (s
 
 	output, err := s.cli.CreateSignedUrl(input)
 	if err != nil {
+		fmt.Printf("\"9\": %v\n", "9")
 		return "", err
 	}
 
