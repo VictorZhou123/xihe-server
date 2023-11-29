@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	libutils "github.com/opensourceways/community-robot-lib/utils"
 	"github.com/opensourceways/xihe-server/bigmodel/domain"
@@ -102,12 +104,25 @@ func (s *service) genGLM2(ec, ch chan string, endpoint string, input *domain.GLM
 	var (
 		r     glm2Response
 		count int
+		flag  bool
 	)
 	go func() {
 		defer func() { ec <- endpoint }()
 		defer resp.Body.Close()
 
+		// stop loop after 60s
+		go func() {
+			time.Sleep(60 * time.Second)
+			flag = true
+		}()
+
 		for {
+			if flag {
+				err = errors.New("loop timeout 60s")
+				ch <- "done"
+				return
+			}
+
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				ch <- "done"
